@@ -11,13 +11,15 @@ poly.paper = (dom, w, h, graph) ->
     opacity: 0    # for not showing background
     'stroke-width': 0
   bg.click graph.handleEvent('reset')
-  poly.mouseEvents(graph, bg, showRect=false)
+  poly.mouseEvents(graph, bg, true)
+  poly.touchEvents(graph, bg, true)
+  # Touch events
   paper
 
 ###
 Mouse Events
 ###
-poly.mouseEvents = (graph, bg, showRect) ->
+poly.mouseEvents = (graph, bg, showRect=true) ->
   # Mouse selection drag rectangle
   handler = graph.handleEvent('select')
   if showRect
@@ -51,7 +53,13 @@ poly.mouseEvents = (graph, bg, showRect) ->
       rect = rect.hide()
       rect.remove()
     handler start:start, end:end
-  bg.drag onmove, onstart, onend
+  bg.drag onmove, onstart, onend # Note this handles touch events too
+
+poly.touchEvents = (graph, bg, enable=true) ->
+  bg.touchstart graph.handleEvent('touchstart')
+  bg.touchend graph.handleEvent('touchend')
+  bg.touchmove graph.handleEvent('touchmove')
+  bg.touchcancel graph.handleEvent('touchcancel')
 ###
 Helper function for rendering all the geoms of an object
 ###

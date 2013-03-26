@@ -7690,7 +7690,8 @@ Dimension object has the following elements (all numeric in pixels):
       'stroke-width': 0
     });
     bg.click(graph.handleEvent('reset'));
-    poly.mouseEvents(graph, bg);
+    poly.mouseEvents(graph, bg, true);
+    poly.touchEvents(graph, bg, true);
     return paper;
   };
 
@@ -7699,10 +7700,15 @@ Dimension object has the following elements (all numeric in pixels):
   */
 
 
-  poly.mouseEvents = function(graph, bg) {
+  poly.mouseEvents = function(graph, bg, showRect) {
     var end, endInfo, handler, onend, onmove, onstart, rect, start, startInfo;
+    if (showRect == null) {
+      showRect = true;
+    }
     handler = graph.handleEvent('select');
-    rect = null;
+    if (showRect) {
+      rect = null;
+    }
     start = end = null;
     startInfo = endInfo = null;
     onstart = function() {
@@ -7717,7 +7723,7 @@ Dimension object has the following elements (all numeric in pixels):
           y: start.y + dy
         };
         endInfo = graph.facet.getFacetInfo(graph.dims, end.x, end.y);
-        if ((rect != null) && (endInfo != null) && endInfo.col === startInfo.col && endInfo.row === startInfo.row) {
+        if ((rect != null) && (endInfo != null) && endInfo.col === startInfo.col && endInfo.row === startInfo.row && showRect) {
           attr = {
             x: Math.min(start.x, end.x),
             y: Math.min(start.y, end.y),
@@ -7733,7 +7739,7 @@ Dimension object has the following elements (all numeric in pixels):
           y: y - offset.top
         };
         startInfo = graph.facet.getFacetInfo(graph.dims, start.x, start.y);
-        if (startInfo != null) {
+        if ((startInfo != null) && showRect) {
           rect = graph.paper.rect(start.x, start.y, 0, 0, 2);
           return rect = rect.attr({
             fill: 'black',
@@ -7744,7 +7750,7 @@ Dimension object has the following elements (all numeric in pixels):
     };
     onend = function() {
       if ((start != null) && (end != null)) {
-        if (rect != null) {
+        if ((rect != null) && showRect) {
           rect = rect.hide();
           rect.remove();
         }
@@ -7755,6 +7761,16 @@ Dimension object has the following elements (all numeric in pixels):
       }
     };
     return bg.drag(onmove, onstart, onend);
+  };
+
+  poly.touchEvents = function(graph, bg, enable) {
+    if (enable == null) {
+      enable = true;
+    }
+    bg.touchstart(graph.handleEvent('touchstart'));
+    bg.touchend(graph.handleEvent('touchend'));
+    bg.touchmove(graph.handleEvent('touchmove'));
+    return bg.touchcancel(graph.handleEvent('touchcancel'));
   };
 
   /*
@@ -9142,6 +9158,7 @@ The functions here makes it easier to create common types of interactions.
       this.coord = null;
       this.facet = poly.facet.make();
       this.dataSubscribed = [];
+      this.touches = [];
       this.make(spec);
       this.addHandler(poly.handler.tooltip());
       this.addHandler(poly.handler.zoom(spec));
@@ -9300,7 +9317,7 @@ The functions here makes it easier to create common types of interactions.
       var graph, handler;
       graph = this;
       handler = function(event) {
-        var adjEnd, adjStart, adjusted, col, end, evtData, f1, h, obj, row, start, _i, _len, _ref, _results;
+        var adjEnd, adjStart, adjusted, col, end, evtData, f1, h, i, j, obj, row, start, touch, touchList, touchTime, _i, _j, _k, _l, _len, _ref, _ref1, _ref2, _ref3, _results, _updatePt;
         obj = this;
         if (type === 'select') {
           start = event.start, end = event.end;
@@ -9325,11 +9342,64 @@ The functions here makes it easier to create common types of interactions.
         } else if (type === 'reset' || type === 'click' || type === 'mover' || type === 'mout' || type === 'guide-click') {
           obj.tooltip = obj.data('t');
           obj.evtData = obj.data('e');
+        } else if (type === 'touchstart') {
+          touchList = event.changedTouches;
+          for (i = _i = 0, _ref = touchList.length - 1; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
+            graph.touches.push({
+              x: touchList[i].screenX,
+              y: touchList[i].screenY,
+              id: touchList[i].identifier,
+              time: event.timeStamp
+            });
+          }
+        } else if (type === 'touchmove') {
+          null;
+        } else if (type === 'touchend') {
+          start = end = null;
+          touchTime = 0;
+          touchList = event.changedTouches;
+          _updatePt = function(oldPt, newPt) {
+            if (oldPt != null) {
+              oldPt.x = (oldPt.x + newPt.x) / 2;
+              oldPt.y = (oldPt.y + newPt.y) / 2;
+            } else {
+              oldPt = {
+                x: newPt.x,
+                y: newPt.y
+              };
+            }
+            return oldPt;
+          };
+          for (i = _j = 0, _ref1 = touchList.length - 1; 0 <= _ref1 ? _j <= _ref1 : _j >= _ref1; i = 0 <= _ref1 ? ++_j : --_j) {
+            touch = {
+              x: touchList[i].screenX,
+              y: touchList[i].screenY,
+              id: touchList[i].identifier,
+              time: event.timeStamp
+            };
+            _updatePt(end, touch);
+            for (j = _k = _ref2 = graph.touches.length - 1; _ref2 <= 0 ? _k <= 0 : _k >= 0; j = _ref2 <= 0 ? ++_k : --_k) {
+              if (graph.touches[j].id === touch.id) {
+                touchTime = Math.max(touchTime, touch.time - graph.touches[j].time);
+                _updatePt(start, graph.touches[j]);
+                graph.touches.splice(j, 1);
+              }
+            }
+          }
+          console.log(touchTime);
+          if (touchTime < 200) {
+            alert("You reset with a touch event!");
+            type = 'reset';
+            console.log("You reset with a touch event!");
+          } else if (touchTime < 500) {
+            console.log("You clicked with a touch event!");
+            alert("You clicked with a touch event!");
+          }
         }
-        _ref = graph.handlers;
+        _ref3 = graph.handlers;
         _results = [];
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          h = _ref[_i];
+        for (_l = 0, _len = _ref3.length; _l < _len; _l++) {
+          h = _ref3[_l];
           if (_.isFunction(h)) {
             _results.push(h(type, obj, event, graph));
           } else {

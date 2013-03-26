@@ -128,8 +128,7 @@ poly.handler.zoom = (init_spec, zoomOptions = {x: true, y: true}) ->
     # Zoom enabled only for Cartesian coordinates
     if graph.coord.type is 'cartesian'
       if type is 'resetZoom'
-        spec = graph.spec
-        (spec.guides[v] = _.clone initGuides[v]) for v in aes
+        (graph.spec.guides[v] = _.clone initGuides[v]) for v in aes
         graph.handlers = _.clone initHandlers
         graph.make graph.spec
       if type is 'select'
