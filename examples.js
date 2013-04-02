@@ -429,7 +429,6 @@
         c.make(spec);
       }
       if (type === 'click') {
-        debugger;
         return alert("You clicked on index: " + data.index["in"][0]);
       }
     });

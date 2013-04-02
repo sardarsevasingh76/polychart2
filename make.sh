@@ -7,6 +7,7 @@ cat \
     compiled/src/error.js \
     compiled/src/abstract.js\
     compiled/src/mouse.js \
+    compiled/src/touch.js \
     compiled/src/format.js \
     compiled/src/type.js \
     compiled/src/spec.js \

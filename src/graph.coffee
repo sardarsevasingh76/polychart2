@@ -22,7 +22,6 @@ class Graph
     @coord = null
     @facet = poly.facet.make()
     @dataSubscribed = []
-    @touches = []
     @make spec
 
     # Post make work, things that do not have to be updated
@@ -135,7 +134,12 @@ class Graph
     graph = @
     handler = (event) ->
       obj = @
-      if type == 'select'
+      _type = [type]
+      # Touch events
+      if type in ['touchstart', 'touchmove', 'touchend', 'touchcancel']
+        _type = poly.touch type, obj, event, graph
+        console.log _type
+      else if type == 'select'
         {start, end} = event
         f1 = graph.facet.getFacetInfo(graph.dims, start.x, start.y)
         if not f1 then return # Did not start in a facet
@@ -156,53 +160,12 @@ class Graph
         #   {x, y} = poly.getXY(poly.offset(graph.dom), event)
         #   f = graph.facet.getFacetInfo(graph.dims, x, y)
         #   if not f then return
-      # Touch events
-      else if type is 'touchstart'
-        touchList = event.changedTouches
-        for i in [0..touchList.length-1]
-          graph.touches.push
-            x: touchList[i].screenX
-            y: touchList[i].screenY
-            id: touchList[i].identifier
-            time: event.timeStamp
-      else if type is 'touchmove'
-        null
-      else if type is 'touchend'
-        start = end = null
-        touchTime = 0
-        touchList = event.changedTouches
-        _updatePt = (oldPt, newPt) ->
-          if oldPt?
-            oldPt.x = (oldPt.x + newPt.x)/2
-            oldPt.y = (oldPt.y + newPt.y)/2
-          else
-            oldPt = x: newPt.x, y: newPt.y
-          oldPt
-        for i in [0..touchList.length-1]
-          touch =
-            x: touchList[i].screenX
-            y: touchList[i].screenY
-            id: touchList[i].identifier
-            time: event.timeStamp
-          _updatePt end, touch
-          for j in [graph.touches.length-1..0]
-            if graph.touches[j].id == touch.id
-              touchTime = Math.max touchTime, touch.time - graph.touches[j].time
-              _updatePt start, graph.touches[j]
-              graph.touches.splice(j, 1)
-        console.log touchTime
-        if touchTime < 200
-          alert "You reset with a touch event!"
-          type = 'reset'
-          console.log "You reset with a touch event!"
-        else if touchTime < 500
-          console.log "You clicked with a touch event!"
-          alert "You clicked with a touch event!"
       for h in graph.handlers
-        if _.isFunction(h)
-          h(type, obj, event, graph)
-        else
-          h.handle(type, obj, event, graph)
+        for t in _type
+          if _.isFunction(h)
+            h(t, obj, event, graph)
+          else
+            h.handle(t, obj, event, graph)
     _.throttle handler, 300
   _makeScaleSet: (spec, domains, facet) ->
     tmpRanges = @coord.ranges()

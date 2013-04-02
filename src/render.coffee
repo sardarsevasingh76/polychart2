@@ -56,10 +56,11 @@ poly.mouseEvents = (graph, bg, showRect=true) ->
   bg.drag onmove, onstart, onend # Note this handles touch events too
 
 poly.touchEvents = (graph, bg, enable=true) ->
-  bg.touchstart graph.handleEvent('touchstart')
-  bg.touchend graph.handleEvent('touchend')
-  bg.touchmove graph.handleEvent('touchmove')
-  bg.touchcancel graph.handleEvent('touchcancel')
+  if enable
+    bg.touchstart graph.handleEvent('touchstart')
+    bg.touchend graph.handleEvent('touchend')
+    bg.touchmove graph.handleEvent('touchmove')
+    bg.touchcancel graph.handleEvent('touchcancel')
 ###
 Helper function for rendering all the geoms of an object
 ###
@@ -86,6 +87,11 @@ poly.render = (handleEvent, paper, scales, coord) -> (offset={}, clipping=false,
     else
       pt.click handleEvent('click')
       pt.hover handleEvent('mover'), handleEvent('mout')
+
+      pt.touchstart handleEvent('touchstart')
+      pt.touchend handleEvent('touchend')
+      pt.touchcancel handleEvent('touchcancel')
+      pt.touchmove handleEvent('touchmove')
     pt
   remove: (pt) ->
     pt.remove()

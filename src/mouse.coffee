@@ -20,8 +20,13 @@ poly.offset = (elem) ->
 Get the raphael (x,y) position of a mouse event
 ###
 poly.getXY = (offset, e) ->
-  x = e.clientX
-  y = e.clientY
+  if e.type.indexOf('mouse') isnt -1
+    x = e.clientX
+    y = e.clientY
+  else if e.type.indexOf('touch') isnt -1
+    touch = e.changedTouches[0]
+    x = touch.clientX
+    y = touch.clientY
   # Support for different browser settings
   scrollY = (document.documentElement && document.documentElement.scrollTop) || document.body.scrollTop
   scrollX = (document.documentElement && document.documentElement.scrollLeft) || document.body.scrollLeft

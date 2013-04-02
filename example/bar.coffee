@@ -24,7 +24,6 @@
       spec.layers[0].data.update data: jsondata
       c.make spec
     if type == 'click'
-      debugger
       alert("You clicked on index: " + data.index.in[0])
     #if type == 'select' then console.log data
   window.c = c
