@@ -11,8 +11,8 @@ poly.paper = (dom, w, h, graph) ->
     opacity: 0    # for not showing background
     'stroke-width': 0
   bg.click graph.handleEvent('reset')
-  poly.mouseEvents(graph, bg, true)
-  poly.touchEvents(graph, bg, true)
+  poly.mouseEvents graph, bg, false
+  poly.touchEvents graph.handleEvent, bg, true
   # Touch events
   paper
 
@@ -55,12 +55,12 @@ poly.mouseEvents = (graph, bg, showRect=true) ->
     handler start:start, end:end
   bg.drag onmove, onstart, onend # Note this handles touch events too
 
-poly.touchEvents = (graph, bg, enable=true) ->
+poly.touchEvents = (handleEvent, elem, enable=true) ->
   if enable
-    bg.touchstart graph.handleEvent('touchstart')
-    bg.touchend graph.handleEvent('touchend')
-    bg.touchmove graph.handleEvent('touchmove')
-    bg.touchcancel graph.handleEvent('touchcancel')
+    elem.touchstart handleEvent('touchstart')
+    elem.touchend handleEvent('touchend')
+    elem.touchmove handleEvent('touchmove')
+    elem.touchcancel handleEvent('touchcancel')
 ###
 Helper function for rendering all the geoms of an object
 ###
@@ -84,14 +84,11 @@ poly.render = (handleEvent, paper, scales, coord) -> (offset={}, clipping=false,
     # handlers
     if type is 'guide'
       pt.click handleEvent('guide-click')
+      poly.touchEvents handleEvent, pt
     else
       pt.click handleEvent('click')
       pt.hover handleEvent('mover'), handleEvent('mout')
-
-      pt.touchstart handleEvent('touchstart')
-      pt.touchend handleEvent('touchend')
-      pt.touchcancel handleEvent('touchcancel')
-      pt.touchmove handleEvent('touchmove')
+      poly.touchEvents handleEvent, pt
     pt
   remove: (pt) ->
     pt.remove()

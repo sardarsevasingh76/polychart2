@@ -27,7 +27,7 @@ class Graph
     # Post make work, things that do not have to be updated
     # Default handlers
     @addHandler poly.handler.tooltip()
-    @addHandler poly.handler.zoom(spec)
+    #@addHandler poly.handler.zoom(spec)
 
   ###
   Remove all existing items on the graph, if necessary
@@ -134,11 +134,9 @@ class Graph
     graph = @
     handler = (event) ->
       obj = @
-      _type = [type]
       # Touch events
       if type in ['touchstart', 'touchmove', 'touchend', 'touchcancel']
-        _type = poly.touch type, obj, event, graph
-        console.log _type
+        poly.touch type, obj, event, graph
       else if type == 'select'
         {start, end} = event
         f1 = graph.facet.getFacetInfo(graph.dims, start.x, start.y)
@@ -161,11 +159,10 @@ class Graph
         #   f = graph.facet.getFacetInfo(graph.dims, x, y)
         #   if not f then return
       for h in graph.handlers
-        for t in _type
-          if _.isFunction(h)
-            h(t, obj, event, graph)
-          else
-            h.handle(t, obj, event, graph)
+        if _.isFunction(h)
+          h(type, obj, event, graph)
+        else
+          h.handle(type, obj, event, graph)
     _.throttle handler, 300
   _makeScaleSet: (spec, domains, facet) ->
     tmpRanges = @coord.ranges()

@@ -1,75 +1,42 @@
 touchInfo = {
-  touches: []
   lastStart: 0
   lastTouch: 0
-  sinceLastTouch: 0
+  lastEvent: null
+  pressTimer: 0
 }
+_oldAlert = window.alert
 
-# Current issues:
-#   * The wrapping hack with zoom does not work with this
-#   * There seems to be some delay in handler updating---in particular, 'touchmove' sometimes fires after 'touchend'
+# Touch events; use of setTimeout in order to accomodate slow ipad response
 poly.touch = (type, obj, event, graph) =>
-  # Helper to average over points, incase of multi touch
-  _updatePt = (oldPt, newPt) ->
-    if oldPt?
-      oldPt.x = (oldPt.x + newPt.x)/2
-      oldPt.y = (oldPt.y + newPt.y)/2
-    else
-      oldPt = x: newPt.x, y: newPt.y
-    oldPt
-  touchList = event.changedTouches
-  first = touchList[0]
+  obj.tooltip = obj.data('t')
+  obj.evtData = obj.data('e')
+  touchInfo.lastEvent = event
+  event.preventDefault()
   if type is 'touchstart'
-    touchInfo.sinceLastTouch = event.timeStamp - touchInfo.lastTouch
     touchInfo.lastStart = event.timeStamp
-    for i in [0..touchList.length-1]
-      touchInfo.touches.push
-        x: touchList[i].screenX
-        y: touchList[i].screenY
-        id: touchList[i].identifier
-        time: event.timeStamp
-    ['touchstart']
+    poly.touchToMouse 'mousedown', touchInfo
+    touchInfo.pressTimer = window.setTimeout((()-> poly.touchToMouse 'mouseover', touchInfo), 800)
+    # Hack to delay alert so that code may finish
+    window.alert = () ->
+      window.clearTimeout touchInfo.pressTimer
+      args = arguments
+      window.setTimeout((() -> _oldAlert.apply(window, args);window.alert = _oldAlert), 100)
   else if type is 'touchmove'
-    event.preventDefault()
     elem = graph.paper.getById event.target.raphaelid
     offset = poly.offset graph.dom
     touchPos = poly.getXY offset, event
-    if event.timeStamp - touchInfo.lastStart > 500
-      if elem.isPointInside(touchPos.x, touchPos.y) then ['touchmove','mover'] else ['touchmove', 'mout']
+    if event.timeStamp - touchInfo.lastStart > 600 && elem.isPointInside touchPos.x, touchPos.y
+      poly.touchToMouse 'mouseover', touchInfo
     else
-      ['touchmove']
+      window.clearTimeout touchInfo.pressTimer
+      poly.touchToMouse 'mouseout', touchInfo
   else if type is 'touchend'
-    event.preventDefault()
-    obj.tooltip = obj.data('t')
-    obj.evtData = obj.data('e')
-
-    start = end = null
-    touchTime = 0
-    for i in [0..touchList.length-1]
-      touch =
-        x: touchList[i].screenX
-        y: touchList[i].screenY
-        id: touchList[i].identifier
-        time: event.timeStamp
-      _updatePt end, touch
-      for j in [touchInfo.touches.length-1..0]
-        if touchInfo.touches[j].id == touch.id
-          touchTime = Math.max touchTime, touch.time - touchInfo.touches[j].time
-          _updatePt start, touchInfo.touches[j]
-          touchInfo.touches.splice(j, 1)
-    touchInfo.lastTouch = event.timeStamp
-    if touchTime < 500
-      touchType = 'tap'
-    else if touchTime < 800
-      touchType = 'touch'
-    else
-      touchType = 'hold'
-    possibleEvents = (e.name for e in obj.events)
-    if 'mouseover' not in possibleEvents # Bad heuristic for background
-      ['reset','mout']
-    else if 'mouseover' in possibleEvents and touchType is 'tap'
-      ['mout','click']
-    else
-      ['mout']
+    window.clearTimeout touchInfo.pressTimer
+    poly.touchToMouse 'mouseup', touchInfo
+    poly.touchToMouse 'mouseout', touchInfo, 400
+    if event.timeStamp - touchInfo.lastStart < 800
+      poly.touchToMouse 'click', touchInfo
   else if type is 'touchcancel'
-    ['reset','mout']
+    window.clearTimeout touchInfo.pressTimer
+    poly.touchToMouse 'mouseout', touchInfo
+    poly.touchToMouse 'mouseup', touchInfo, 300
