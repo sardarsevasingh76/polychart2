@@ -5333,7 +5333,9 @@ attribute of that value.
           return _.indexOf(_this.domain.levels, v) / n + 1 / (2 * n);
         };
         return this.f = function(value) {
-          return Raphael.hsl(h(value), 0.5, 0.5);
+          var _ref5;
+
+          return (_ref5 = typeof Raphael !== "undefined" && Raphael !== null ? Raphael.hsl(h(value), 0.5, 0.5) : void 0) != null ? _ref5 : "hsl(" + (h(value)) + ",0.5,0.5)";
         };
       }
     };
@@ -5351,16 +5353,18 @@ attribute of that value.
     }
 
     Gradient.prototype._makeNum = function() {
-      var b, g, lower, r, upper,
+      var b, g, lower, r, upper, _ref5, _ref6,
         _this = this;
 
-      lower = Raphael.color(this.lower);
-      upper = Raphael.color(this.upper);
+      lower = (_ref5 = typeof Raphael !== "undefined" && Raphael !== null ? Raphael.color(this.lower) : void 0) != null ? _ref5 : this.lower;
+      upper = (_ref6 = typeof Raphael !== "undefined" && Raphael !== null ? Raphael.color(this.upper) : void 0) != null ? _ref6 : this.upper;
       r = poly.linear(this.domain.min, lower.r, this.domain.max, upper.r);
       g = poly.linear(this.domain.min, lower.g, this.domain.max, upper.g);
       b = poly.linear(this.domain.min, lower.b, this.domain.max, upper.b);
       return this.f = this._identityWrapper(function(value) {
-        return Raphael.rgb(r(value), g(value), b(value));
+        var _ref7;
+
+        return typeof Raphael !== "undefined" && Raphael !== null ? Raphael.rgb(r(value), g(value), (_ref7 = b(value)) != null ? _ref7 : "rgb(" + (r(value)) + ", " + (g(value)) + ", " + (b(value)) + ")") : void 0;
       });
     };
 
@@ -5388,12 +5392,12 @@ attribute of that value.
     }
 
     Gradient2.prototype._makeNum = function() {
-      var b1, b2, g1, g2, lower, middle, r1, r2, upper,
+      var b1, b2, g1, g2, lower, middle, r1, r2, upper, _ref5, _ref6, _ref7,
         _this = this;
 
-      lower = Raphael.color(this.lower);
-      middle = Raphael.color(this.middle);
-      upper = Raphael.color(this.upper);
+      lower = (_ref5 = typeof Raphael !== "undefined" && Raphael !== null ? Raphael.color(this.lower) : void 0) != null ? _ref5 : this.lower;
+      middle = (_ref6 = typeof Raphael !== "undefined" && Raphael !== null ? Raphael.color(this.middle) : void 0) != null ? _ref6 : this.middle;
+      upper = (_ref7 = typeof Raphael !== "undefined" && Raphael !== null ? Raphael.color(this.upper) : void 0) != null ? _ref7 : this.upper;
       r1 = poly.linear(this.domain.min, lower.r, this.midpoint, middle.r);
       g1 = poly.linear(this.domain.min, lower.g, this.midpoint, middle.g);
       b1 = poly.linear(this.domain.min, lower.b, this.midpoint, middle.b);
@@ -5401,10 +5405,12 @@ attribute of that value.
       g2 = poly.linear(this.midpoint, middle.g, this.domain.max, upper.g);
       b2 = poly.linear(this.midpoint, middle.b, this.domain.max, upper.b);
       return this.f = this._identityWrapper(function(value) {
+        var _ref8, _ref9;
+
         if (value < _this.midpoint) {
-          return Raphael.rgb(r1(value), g1(value), b1(value));
+          return (_ref8 = typeof Raphael !== "undefined" && Raphael !== null ? Raphael.rgb(r1(value), g1(value), b1(value)) : void 0) != null ? _ref8 : "rgb(" + (r1(value)) + ", " + (g1(value)) + ", " + (b1(value)) + ")";
         } else {
-          return Raphael.rgb(r2(value), g2(value), b2(value));
+          return typeof Raphael !== "undefined" && Raphael !== null ? Raphael.rgb(r2(value), g2(value), (_ref9 = b2(value)) != null ? _ref9 : "rgb(" + (r2(value)) + ", " + (g2(value)) + ", " + (b2(value)) + ")") : void 0;
         }
       });
     };
