@@ -29,7 +29,9 @@ class PolyCanvas
 
   toBack: (id) ->
     [item] = @remove id
+    [bg] = @remove 1
     @items.push item
+    @items.push bg
   toFront: (id) ->
     [item] = @remove id
     @items.unshift item
